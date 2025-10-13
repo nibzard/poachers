@@ -1,7 +1,7 @@
 [project]
-name = "igrica"
+name = "poachers"
 version = "0.1.0"
-description = "Add your description here"
+description = "A multiplayer FastAPI game where players can create teams and poach members from other teams"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

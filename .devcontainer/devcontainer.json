@@ -1,5 +1,5 @@
 {
-  "name": "Scientific Programming 2025/26",
+  "name": "Intro SWE 2025/26",
   "image": "mcr.microsoft.com/devcontainers/python:3.13",
   "features": {
     "ghcr.io/devcontainers/features/git:1": {},
@@ -110,10 +110,6 @@
       "onAutoForward": "notify"
     }
   },
-  "mounts": [
-    "source=${localWorkspaceFolder}/data,target=/workspaces/data,type=bind",
-    "source=${localWorkspaceFolder}/notebooks,target=/workspaces/notebooks,type=bind"
-  ],
   "postCreateCommand": "bash .devcontainer/setup.sh || echo 'Setup completed with warnings - some features may need manual configuration'",
   "remoteUser": "vscode",
   "postStartCommand": "sudo chown -R vscode:vscode /workspaces/ || true"

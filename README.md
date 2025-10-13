@@ -33,19 +33,6 @@ uv run python main.py
 
 4. Game will be available at `http://localhost:8002`
 
-### Alternative Setup (pip)
-
-If you prefer to use pip:
-
-1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-2. Run the server:
-```bash
-python main.py
-```
 
 ## API Endpoints
 
@@ -238,6 +225,5 @@ Example error response:
 ├── game_state.py        # Game state management and business logic
 ├── pyproject.toml       # uv project configuration
 ├── uv.lock             # uv dependency lock file
-├── requirements.txt     # Pip fallback dependencies
 └── README.md           # This file
 ```
