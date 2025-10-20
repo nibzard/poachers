@@ -79,17 +79,19 @@ wheels = [
 ]
 
 [[package]]
-name = "igrica"
+name = "poachers"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "pywrangler" },
     { name = "uvicorn" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.119.0" },
+    { name = "pywrangler", specifier = ">=0.0.2" },
     { name = "uvicorn", specifier = ">=0.37.0" },
 ]
 
@@ -196,6 +198,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9c/48/a9263aeaebdec81e941198525b43edb3b44f27cfa4cb8005b8d3eb8dec72/pydantic_core-2.41.1-pp311-pypy311_pp73-musllinux_1_1_x86_64.whl", hash = "sha256:1e798b4b304a995110d41ec93653e57975620ccb2842ba9420037985e7d7284e", size = 2322763, upload-time = "2025-10-07T10:50:38.751Z" },
     { url = "https://files.pythonhosted.org/packages/1d/62/755d2bd2593f701c5839fc084e9c2c5e2418f460383ad04e3b5d0befc3ca/pydantic_core-2.41.1-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:f1fc716c0eb1663c59699b024428ad5ec2bcc6b928527b8fe28de6cb89f47efb", size = 2144046, upload-time = "2025-10-07T10:50:40.686Z" },
 ]
+
+[[package]]
+name = "pywrangler"
+version = "0.0.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c8/35/41e4de880fe2052148421dff15e58cb2bc1619d53669e2c93529d155f262/PyWrangler-0.0.2.tar.gz", hash = "sha256:aa7ed7a5002e8007d95427d6a3dca91fde3c21fb521478e9900030c07f12f6a6", size = 1263, upload-time = "2019-05-03T10:42:44.543Z" }
 
 [[package]]
 name = "sniffio"
