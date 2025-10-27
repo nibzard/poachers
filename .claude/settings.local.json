@@ -4,7 +4,9 @@
       "Bash(wrangler whoami:*)",
       "Bash(vercel:*)",
       "Bash(uv pip install:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
