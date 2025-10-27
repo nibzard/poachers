@@ -1,12 +1,13 @@
 # Team Poaching Game
 
-A multiplayer FastAPI-based game where students can join, create teams (max 2 members), poach players from other teams, and leave teams to become free agents.
+A multiplayer FastAPI-based game where students can join, create teams, poach players from other teams, and leave teams to become free agents. Features a full admin panel for game management with configurable team sizes.
 
-🚀 **Live Demo:** https://poachers.vercel.app
+🚀 **Live Demo:** https://poachers.vercel.app  
+🔐 **Admin Panel:** https://poachers.vercel.app/admin (password: `Douglas42`)
 
 ## Game Rules
 
-- Teams have a maximum of 2 members
+- Teams have a configurable maximum size (default: 2 members, adjustable in admin panel)
 - Player names must be unique
 - Team names must be unique
 - Players can only poach if their team has space available
