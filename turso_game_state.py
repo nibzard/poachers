@@ -804,3 +804,49 @@ INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('total_teams', 0
                 "success": False,
                 "message": f"Failed to set max team size: {str(e)}"
             }
+
+    async def get_poaching_enabled(self) -> bool:
+        """Get the current poaching enabled setting"""
+        try:
+            client = self._get_client()
+            
+            # Check if setting exists
+            result = client.execute(
+                "SELECT stat_value FROM game_stats WHERE stat_key = 'poaching_enabled'"
+            )
+            
+            if len(result) > 0:
+                return bool(result[0][0])
+            else:
+                # Default to enabled if not set
+                client.execute(
+                    "INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('poaching_enabled', 1)"
+                )
+                return True
+        except Exception as e:
+            return True  # Default fallback
+
+    async def set_poaching_enabled(self, enabled: bool) -> Dict[str, Any]:
+        """Enable or disable poaching"""
+        try:
+            client = self._get_client()
+            
+            value = 1 if enabled else 0
+            
+            # Insert or update the setting
+            client.execute(
+                "INSERT OR REPLACE INTO game_stats (stat_key, stat_value) VALUES ('poaching_enabled', ?)",
+                [value]
+            )
+            
+            status = "enabled" if enabled else "disabled"
+            return {
+                "success": True,
+                "message": f"Poaching {status}",
+                "poaching_enabled": enabled
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to set poaching status: {str(e)}"
+            }
