@@ -198,6 +198,11 @@ async def poach_player(request: PoachRequest) -> Dict[str, Any]:
     - **poacher_team_name**: Name of your team (must have space available)
     """
     try:
+        # Check if poaching is enabled
+        poaching_enabled = await GameManager.get_poaching_enabled()
+        if not poaching_enabled:
+            raise HTTPException(status_code=403, detail="Poaching is currently disabled by the admin")
+        
         result = await GameManager.poach_player(request.target_player_name, request.poacher_team_name)
 
         if result["success"]:
@@ -306,6 +311,7 @@ async def admin_panel(admin_session: Optional[str] = Cookie(None)):
     try:
         status = await GameManager.get_status()
         max_team_size = await GameManager.get_max_team_size()
+        poaching_enabled = await GameManager.get_poaching_enabled()
         
         html = get_admin_html(
             players=status.get("players", []),
@@ -315,7 +321,8 @@ async def admin_panel(admin_session: Optional[str] = Cookie(None)):
                 "total_teams": status.get("total_teams", 0),
                 "free_agents_count": status.get("free_agents_count", 0)
             },
-            max_team_size=max_team_size
+            max_team_size=max_team_size,
+            poaching_enabled=poaching_enabled
         )
         return HTMLResponse(content=html)
     except Exception as e:
@@ -379,6 +386,17 @@ async def admin_auto_assign(admin_session: Optional[str] = Cookie(None)):
         raise HTTPException(status_code=403, detail="Not authenticated")
     
     await GameManager.auto_assign_free_agents()
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.post("/admin/toggle-poaching")
+async def admin_toggle_poaching(enabled: str = Form(...), admin_session: Optional[str] = Cookie(None)):
+    """Toggle poaching on/off"""
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
+    
+    poaching_enabled = enabled.lower() == "true"
+    await GameManager.set_poaching_enabled(poaching_enabled)
     return RedirectResponse(url="/admin", status_code=303)
 
 

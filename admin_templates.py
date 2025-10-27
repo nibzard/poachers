@@ -1,6 +1,6 @@
 # ABOUTME: HTML templates for admin panel
 
-def get_admin_html(players, teams, stats, max_team_size=2):
+def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True):
     """Generate admin panel HTML"""
     
     # Build players table
@@ -198,11 +198,23 @@ def get_admin_html(players, teams, stats, max_team_size=2):
 
         <h2>⚙️ Settings</h2>
         <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px 0;">
-            <form method="POST" action="/admin/set-team-size" style="display: flex; align-items: center; gap: 15px;">
+            <form method="POST" action="/admin/set-team-size" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee;">
                 <label style="font-weight: 600;">Max Team Size:</label>
                 <input type="number" name="team_size" value="{max_team_size}" min="1" max="10" style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 4px;">
                 <button type="submit" style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Update</button>
                 <span style="color: #666; font-size: 14px;">Current: {max_team_size} members per team</span>
+            </form>
+            
+            <form method="POST" action="/admin/toggle-poaching" style="display: flex; align-items: center; gap: 15px;">
+                <label style="font-weight: 600;">Poaching Status:</label>
+                <input type="hidden" name="enabled" value="{'false' if poaching_enabled else 'true'}">
+                <button type="submit" style="background: {'#28a745' if poaching_enabled else '#dc3545'}; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; min-width: 120px;">
+                    {'✓ Enabled' if poaching_enabled else '✗ Disabled'}
+                </button>
+                <span style="color: #666; font-size: 14px;">Click to {'disable' if poaching_enabled else 'enable'} poaching</span>
+                <span style="color: {'#28a745' if poaching_enabled else '#dc3545'}; font-weight: 600; font-size: 14px;">
+                    {'Players can poach from teams' if poaching_enabled else 'Poaching is blocked'}
+                </span>
             </form>
         </div>
 

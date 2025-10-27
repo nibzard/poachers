@@ -52,6 +52,25 @@ This project uses [uv](https://docs.astral.sh/uv/) for Python management.
 5. **Game will be available at:** `http://localhost:8002`
 
 
+## Features
+
+### 🎮 Game API
+- Join as a player
+- Create or join teams
+- Poach players from other teams
+- Leave teams to become free agents
+- View real-time game status
+
+### 🔐 Admin Panel
+- **Session-based authentication** (no passwords in URLs)
+- View all players and teams in a dashboard
+- **Configurable team size** (1-10 members)
+- **Auto-assign free agents** to teams with randomly generated names
+- Create test data for quick setup
+- Delete individual players or teams
+- Reset entire database
+- See [ADMIN.md](ADMIN.md) for full admin guide
+
 ## API Endpoints
 
 ### POST /join
@@ -72,7 +91,7 @@ Join the game as a new player.
     "id": "uuid",
     "name": "PlayerName",
     "team_id": null,
-    "joined_at": "2024-01-01T12:00:00"
+    "joined_at": "2025-10-27T12:00:00"
   }
 }
 ```
@@ -210,6 +229,18 @@ Leave your current team and become a free agent.
 ### GET /
 Root endpoint with game information and rules.
 
+### GET /admin
+Admin panel with password-protected access. See [ADMIN.md](ADMIN.md) for details.
+
+**Features:**
+- Dashboard with player/team statistics
+- Configurable max team size (1-10 members)
+- Auto-assign free agents to teams
+- Create test data
+- Delete players/teams
+- Reset database
+- Session-based authentication (24-hour sessions)
+
 ## Example Game Flow
 
 **Using the live API (https://poachers.vercel.app):**
@@ -269,6 +300,8 @@ Example error response:
 - **Turso** - Distributed SQLite database for persistent storage
 - **Pydantic** - Data validation and serialization
 - **Mangum** - ASGI adapter for serverless deployment
+- **itsdangerous** - Cryptographically signed session tokens
+- **python-multipart** - Form data handling
 - **uv** - Fast Python package and project manager
 - **Vercel** - Serverless deployment platform
 
@@ -311,7 +344,7 @@ The database schema is automatically initialized on first connection. Tables cre
 - `players` - Player information
 - `teams` - Team information  
 - `team_members` - Team membership relationships
-- `game_stats` - Game statistics
+- `game_stats` - Game statistics (includes configurable max team size setting)
 
 ## Deployment
 
@@ -339,6 +372,7 @@ Make sure to set up the Turso environment variables in your Vercel project setti
 ├── models.py            # Pydantic data models and request/response schemas
 ├── game_state.py        # In-memory game state (for local development)
 ├── turso_game_state.py  # Turso database operations (used in production)
+├── admin_templates.py   # HTML templates for admin panel
 ├── api/
 │   ├── index.py         # Vercel serverless function entry point
 │   └── requirements.txt # Python dependencies for deployment
@@ -348,8 +382,27 @@ Make sure to set up the Turso environment variables in your Vercel project setti
 ├── pyproject.toml       # uv project configuration
 ├── requirements.txt     # Generated Python dependencies
 ├── vercel.json          # Vercel deployment configuration
-└── README.md            # This file
+├── README.md            # This file
+└── ADMIN.md             # Admin panel documentation
 ```
+
+## Admin Panel
+
+The game includes a full-featured admin panel for managing games:
+
+- **URL:** https://poachers.vercel.app/admin
+- **Password:** `Douglas42`
+- **Documentation:** [ADMIN.md](ADMIN.md)
+
+### Admin Features:
+- 📊 Dashboard with real-time statistics
+- ⚙️ Configurable team size (1-10 members)
+- 🎲 Auto-assign free agents to teams (with fun team names like "LuckyParakeet", "BraveTiger")
+- ➕ Create test data
+- 👥 Delete individual players
+- 🏆 Delete individual teams
+- 🗑️ Reset entire database
+- 🔐 Secure session-based authentication
 
 ## Contributing
 

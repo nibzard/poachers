@@ -53,9 +53,13 @@
 
 ## Security
 
-- Password protected (query parameter or form submission)
+- **Session-based authentication** using signed, HTTP-only cookies
+- Password is never exposed in the URL or browser history
+- Sessions expire after 24 hours
+- Cookies are signed using `itsdangerous` library
 - Password is hardcoded in the application: `Douglas42`
-- **Do not share the admin URL with players!**
+- **Do not share the admin URL or password with players!**
+- Use the "Logout" button when finished to invalidate your session
 
 ## Use Cases
 
