@@ -3,14 +3,14 @@
 def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True):
     """Generate admin panel HTML"""
     
+    # Build team lookup map for faster access
+    team_map = {team.get("id"): team.get("name") for team in teams}
+    
     # Build players table
     players_rows = ""
     for player in players:
-        team_name = "Free Agent"
-        for team in teams:
-            if player.get("team_id") in team.get("member_ids", []):
-                team_name = team.get("name")
-                break
+        team_id = player.get("team_id")
+        team_name = team_map.get(team_id, "Free Agent") if team_id else "Free Agent"
         
         players_rows += f"""
         <tr>
@@ -30,7 +30,7 @@ def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True
     teams_rows = ""
     for team in teams:
         member_count = team.get('member_count', 0)
-        status = "Full" if team.get('is_full') else f"{member_count}/2"
+        status = "Full" if team.get('is_full') else f"{member_count}/{max_team_size}"
         
         teams_rows += f"""
         <tr>
