@@ -2,13 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(wrangler whoami:*)",
-      "Bash(vercel:*)"
+      "Bash(vercel:*)",
+      "Bash(uv pip install:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "daytona"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

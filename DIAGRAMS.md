@@ -22,14 +22,14 @@ flowchart LR
 
     subgraph Vercel Serverless
         VAPP["api/index.py"]
-        SGM["SimpleGameManager (in-memory)"]
-        VAPP --> SGM
+        TGM["TursoGameManager (Turso SQL)"]
+        VAPP --> TGM
     end
 
     classDef store fill:#fdf6e3,stroke:#b58900,color:#333
     classDef svc fill:#eef,stroke:#88a,color:#333
     class APP,WAPP,VAPP svc
-    class GS,KV,P,T store
+    class GS,P,T store
 ```
 
 ## Data Model
@@ -150,7 +150,7 @@ flowchart TB
 ```mermaid
 flowchart TB
     subgraph Vercel
-        C["api/index.py"] --> SGM["SimpleGameManager"]
+        C["api/index.py"] --> TGM["TursoGameManager"]
         vercel["vercel.json"]:::cfg --> C
     end
 

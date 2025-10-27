@@ -1,12 +1,9 @@
 # ABOUTME: Simple Turso SQL database game state management for team poaching game
-from models import Player, Team
-from typing import Dict, Any, List, Optional
-import json
+from typing import Dict, Any
 import uuid
 import os
 from datetime import datetime
 from libsql_client import create_client_sync
-import asyncio
 
 
 class TursoGameManager:
