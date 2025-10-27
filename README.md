@@ -1,6 +1,8 @@
 # Team Poaching Game
 
-A multiplayer FastAPI-based game where students can join, create teams (max 2 members), and poach players from other teams.
+A multiplayer FastAPI-based game where students can join, create teams (max 2 members), poach players from other teams, and leave teams to become free agents.
+
+🚀 **Live Demo:** https://poachers.vercel.app
 
 ## Game Rules
 
@@ -9,29 +11,44 @@ A multiplayer FastAPI-based game where students can join, create teams (max 2 me
 - Team names must be unique
 - Players can only poach if their team has space available
 - You cannot poach from your own team
-- Teams are dissolved when they have no members
+- Players can leave their team to become free agents
+- Teams are automatically dissolved when they have no members
 
-## Setup
+## Quick Start
+
+The easiest way to use the API is via the live deployment:
+
+**API Base URL:** https://poachers.vercel.app
+
+No setup required! Jump directly to the [Example Game Flow](#example-game-flow) section.
+
+## Local Development Setup
 
 This project uses [uv](https://docs.astral.sh/uv/) for Python management.
 
-1. Clone the repository:
-```bash
-git clone https://github.com/nibzard/poachers.git
-cd poachers
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/nibzard/poachers.git
+   cd poachers
+   ```
 
-2. Install dependencies with uv:
-```bash
-uv sync
-```
+2. **Install dependencies with uv:**
+   ```bash
+   uv sync
+   ```
 
-3. Run the server:
-```bash
-uv run python main.py
-```
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Turso database credentials
+   ```
 
-4. Game will be available at `http://localhost:8002`
+4. **Run the development server:**
+   ```bash
+   uv run python main.py
+   ```
+
+5. **Game will be available at:** `http://localhost:8002`
 
 
 ## API Endpoints
@@ -163,37 +180,73 @@ Poach a player from another team.
 }
 ```
 
+### POST /leave
+Leave your current team and become a free agent.
+
+**Request:**
+```json
+{
+  "player_name": "PlayerName"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Player 'PlayerName' left team 'TeamName' and is now a free agent",
+  "player": {
+    "id": "uuid",
+    "name": "PlayerName",
+    "team_id": null,
+    "joined_at": "2024-01-01T12:00:00"
+  },
+  "team_dissolved": false
+}
+```
+
+**Note:** If you're the last member of a team, the team will be automatically dissolved and `team_dissolved` will be `true`.
+
 ### GET /
 Root endpoint with game information and rules.
 
 ## Example Game Flow
 
+**Using the live API (https://poachers.vercel.app):**
+
 1. **Players join:**
    ```bash
-   curl -X POST http://localhost:8002/join -H "Content-Type: application/json" -d '{"name": "Alice"}'
-   curl -X POST http://localhost:8002/join -H "Content-Type: application/json" -d '{"name": "Bob"}'
-   curl -X POST http://localhost:8002/join -H "Content-Type: application/json" -d '{"name": "Charlie"}'
+   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"name": "Alice"}'
+   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"name": "Bob"}'
+   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"name": "Charlie"}'
    ```
 
 2. **Create teams:**
    ```bash
-   curl -X POST http://localhost:8002/team -H "Content-Type: application/json" -d '{"action": "create", "team_name": "TeamAlpha", "creator_name": "Alice"}'
-   curl -X POST http://localhost:8002/team -H "Content-Type: application/json" -d '{"action": "join", "team_name": "TeamAlpha", "player_name": "Bob"}'
+   curl -X POST https://poachers.vercel.app/team -H "Content-Type: application/json" -d '{"action": "create", "team_name": "TeamAlpha", "creator_name": "Alice"}'
+   curl -X POST https://poachers.vercel.app/team -H "Content-Type: application/json" -d '{"action": "join", "team_name": "TeamAlpha", "player_name": "Bob"}'
    ```
 
 3. **Check status:**
    ```bash
-   curl http://localhost:8002/status
+   curl https://poachers.vercel.app/status
    ```
 
 4. **Poach players:**
    ```bash
    # Charlie creates a new team first
-   curl -X POST http://localhost:8002/team -H "Content-Type: application/json" -d '{"action": "create", "team_name": "TeamBeta", "creator_name": "Charlie"}'
+   curl -X POST https://poachers.vercel.app/team -H "Content-Type: application/json" -d '{"action": "create", "team_name": "TeamBeta", "creator_name": "Charlie"}'
 
-   # Now Charlie can poach
-   curl -X POST http://localhost:8002/poach -H "Content-Type: application/json" -d '{"target_player_name": "Bob", "poacher_team_name": "TeamBeta"}'
+   # Now Charlie can poach Bob from TeamAlpha
+   curl -X POST https://poachers.vercel.app/poach -H "Content-Type: application/json" -d '{"target_player_name": "Bob", "poacher_team_name": "TeamBeta"}'
    ```
+
+5. **Leave a team:**
+   ```bash
+   # Alice leaves TeamAlpha (team will be dissolved since she's the only member)
+   curl -X POST https://poachers.vercel.app/leave -H "Content-Type: application/json" -d '{"player_name": "Alice"}'
+   ```
+
+**For local development, replace `https://poachers.vercel.app` with `http://localhost:8002`**
 
 ## Error Handling
 
@@ -209,17 +262,20 @@ Example error response:
 }
 ```
 
-## Architecture
+## Technology Stack
 
-- **FastAPI**: Web framework and API
-- **Turso SQL**: Distributed SQLite database for persistent storage
-- **Pydantic**: Data validation and serialization
-- **uv**: Modern Python package and project management
-- **Vercel**: Serverless deployment platform
+- **FastAPI** - Modern Python web framework for building APIs
+- **Turso** - Distributed SQLite database for persistent storage
+- **Pydantic** - Data validation and serialization
+- **Mangum** - ASGI adapter for serverless deployment
+- **uv** - Fast Python package and project manager
+- **Vercel** - Serverless deployment platform
 
-## Database Setup
+## Database
 
-This game uses [Turso](https://turso.tech/) for persistent data storage:
+This game uses [Turso](https://turso.tech/) - a distributed SQLite database for persistent data storage across serverless deployments.
+
+### Setting Up Your Own Database
 
 1. **Create Turso database:**
    ```bash
@@ -230,40 +286,74 @@ This game uses [Turso](https://turso.tech/) for persistent data storage:
    turso db create poachers
 
    # Get connection URL and auth token
-   turso db show poachers --show-url
+   turso db show poachers --url
    turso db tokens create poachers
    ```
 
-2. **Set up environment variables:**
+2. **Configure environment variables:**
    ```bash
-   # Copy the example environment file
+   # For local development
    cp .env.example .env
-
-   # Edit .env with your Turso credentials
-   TURSO_DATABASE_URL=https://your-database-url
-   TURSO_AUTH_TOKEN=your-auth-token
+   # Edit .env with your Turso credentials:
+   # TURSO_DATABASE_URL=libsql://your-database-url
+   # TURSO_AUTH_TOKEN=your-auth-token
    ```
 
-3. **Deploy to Vercel:**
+3. **For Vercel deployment:**
    ```bash
-   # Install Vercel CLI
-   npm i -g vercel
-
-   # Deploy with environment variables
-   vercel --env TURSO_DATABASE_URL --env TURSO_AUTH_TOKEN
+   # Set environment variables in Vercel
+   vercel env add TURSO_DATABASE_URL
+   vercel env add TURSO_AUTH_TOKEN
    ```
+
+The database schema is automatically initialized on first connection. Tables created:
+- `players` - Player information
+- `teams` - Team information  
+- `team_members` - Team membership relationships
+- `game_stats` - Game statistics
+
+## Deployment
+
+The game is deployed on Vercel at https://poachers.vercel.app
+
+To deploy your own instance:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy (will prompt for configuration)
+vercel
+
+# Deploy to production
+vercel --prod
+```
+
+Make sure to set up the Turso environment variables in your Vercel project settings.
 
 ## File Structure
 
 ```
-├── main.py              # FastAPI app and API endpoints (local development)
-├── models.py            # Pydantic data models
-├── game_state.py        # In-memory game state (local development only)
-├── turso_game_state.py  # Turso database operations
-├── api/index.py         # Vercel serverless function entry point
-├── db/schema.sql        # Database schema definition
+├── main.py              # FastAPI app and API endpoints
+├── models.py            # Pydantic data models and request/response schemas
+├── game_state.py        # In-memory game state (for local development)
+├── turso_game_state.py  # Turso database operations (used in production)
+├── api/
+│   ├── index.py         # Vercel serverless function entry point
+│   └── requirements.txt # Python dependencies for deployment
+├── db/
+│   └── schema.sql       # Database schema definition (embedded in code)
 ├── .env.example         # Environment variables template
 ├── pyproject.toml       # uv project configuration
-├── uv.lock             # uv dependency lock file
-└── README.md           # This file
+├── requirements.txt     # Generated Python dependencies
+├── vercel.json          # Vercel deployment configuration
+└── README.md            # This file
 ```
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
+## License
+
+MIT
