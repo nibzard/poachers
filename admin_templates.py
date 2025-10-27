@@ -156,6 +156,13 @@ def get_admin_html(players, teams, stats, max_team_size=2):
             .test-data-btn:hover {{
                 background: #218838;
             }}
+            .auto-assign-btn {{
+                background: #17a2b8;
+                color: white;
+            }}
+            .auto-assign-btn:hover {{
+                background: #138496;
+            }}
             .refresh-btn {{
                 background: #007bff;
                 color: white;
@@ -206,6 +213,11 @@ def get_admin_html(players, teams, stats, max_team_size=2):
             <form method="GET" action="/admin" style="display: inline;">
                 <input type="hidden" name="password" value="Douglas42">
                 <button type="submit" class="refresh-btn">🔄 Refresh</button>
+            </form>
+            
+            <form method="POST" action="/admin/auto-assign" style="display: inline;">
+                <input type="hidden" name="password" value="Douglas42">
+                <button type="submit" class="test-data-btn">🎲 Auto-Assign Free Agents</button>
             </form>
             
             <form method="POST" action="/admin/create-test-data" style="display: inline;">

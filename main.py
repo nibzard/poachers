@@ -338,6 +338,16 @@ async def admin_set_team_size(password: str = Form(...), team_size: int = Form(.
     return RedirectResponse(url=f"/admin?password={password}", status_code=303)
 
 
+@app.post("/admin/auto-assign")
+async def admin_auto_assign(password: str = Form(...)):
+    """Automatically assign free agents to teams"""
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Invalid password")
+    
+    await GameManager.auto_assign_free_agents()
+    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+
+
 @app.get("/")
 async def root():
     """

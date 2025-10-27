@@ -803,3 +803,145 @@ INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('total_teams', 0
                 "success": False,
                 "message": f"Failed to set max team size: {str(e)}"
             }
+
+    async def auto_assign_free_agents(self) -> Dict[str, Any]:
+        """Automatically assign free agents to teams"""
+        import random
+        
+        try:
+            client = self._get_client()
+            max_team_size = await self.get_max_team_size()
+            
+            # Get all free agents
+            free_agents = client.execute(
+                "SELECT id, name FROM players WHERE team_id IS NULL ORDER BY joined_at"
+            )
+            
+            if len(free_agents) == 0:
+                return {
+                    "success": False,
+                    "message": "No free agents to assign"
+                }
+            
+            # Get teams with available spots
+            all_teams = client.execute("""
+                SELECT t.id, t.name, COUNT(tm.player_id) as member_count
+                FROM teams t
+                LEFT JOIN team_members tm ON t.id = tm.team_id
+                GROUP BY t.id, t.name
+                HAVING COUNT(tm.player_id) < ?
+                ORDER BY member_count ASC
+            """, [max_team_size])
+            
+            available_teams = list(all_teams)
+            assigned_count = 0
+            teams_created = 0
+            
+            # Adjectives and animals for team names
+            adjectives = [
+                "Lucky", "Happy", "Brave", "Swift", "Mighty", "Clever", "Bold",
+                "Fierce", "Gentle", "Wise", "Quick", "Strong", "Bright", "Wild",
+                "Noble", "Proud", "Fearless", "Agile", "Cosmic", "Magic"
+            ]
+            
+            animals = [
+                "Parakeet", "Monkey", "Tiger", "Eagle", "Dragon", "Phoenix", 
+                "Wolf", "Lion", "Falcon", "Panther", "Bear", "Fox", "Hawk",
+                "Leopard", "Dolphin", "Shark", "Cobra", "Jaguar", "Raven", "Owl"
+            ]
+            
+            for player_id, player_name in free_agents:
+                team_assigned = False
+                
+                # Try to assign to existing team with space
+                for team_id, team_name, member_count in available_teams:
+                    current_count = client.execute(
+                        "SELECT COUNT(*) FROM team_members WHERE team_id = ?",
+                        [team_id]
+                    )
+                    
+                    if current_count[0][0] < max_team_size:
+                        # Add player to this team
+                        joined_at = datetime.utcnow().isoformat()
+                        client.execute(
+                            "INSERT INTO team_members (team_id, player_id, joined_at) VALUES (?, ?, ?)",
+                            [team_id, player_id, joined_at]
+                        )
+                        client.execute(
+                            "UPDATE players SET team_id = ? WHERE id = ?",
+                            [team_id, player_id]
+                        )
+                        assigned_count += 1
+                        team_assigned = True
+                        
+                        # Update the available teams list if team is now full
+                        if current_count[0][0] + 1 >= max_team_size:
+                            available_teams = [(tid, tname, tcount) for tid, tname, tcount in available_teams if tid != team_id]
+                        
+                        break
+                
+                # If no team available, create a new one
+                if not team_assigned:
+                    # Generate unique team name
+                    max_attempts = 50
+                    for _ in range(max_attempts):
+                        adj = random.choice(adjectives)
+                        animal = random.choice(animals)
+                        new_team_name = f"{adj}{animal}"
+                        
+                        # Check if name exists
+                        existing = client.execute(
+                            "SELECT id FROM teams WHERE name = ?",
+                            [new_team_name]
+                        )
+                        
+                        if len(existing) == 0:
+                            # Create new team with this player
+                            team_id = await self.get_next_id()
+                            created_at = datetime.utcnow().isoformat()
+                            
+                            client.execute(
+                                "INSERT INTO teams (id, name, created_at) VALUES (?, ?, ?)",
+                                [team_id, new_team_name, created_at]
+                            )
+                            
+                            # Add player to team
+                            client.execute(
+                                "INSERT INTO team_members (team_id, player_id, joined_at) VALUES (?, ?, ?)",
+                                [team_id, player_id, created_at]
+                            )
+                            client.execute(
+                                "UPDATE players SET team_id = ? WHERE id = ?",
+                                [team_id, player_id]
+                            )
+                            
+                            # Update stats
+                            client.execute(
+                                "UPDATE game_stats SET stat_value = stat_value + 1 WHERE stat_key = 'total_teams'"
+                            )
+                            
+                            assigned_count += 1
+                            teams_created += 1
+                            
+                            # Add to available teams if not full
+                            if max_team_size > 1:
+                                available_teams.append((team_id, new_team_name, 1))
+                            
+                            break
+            
+            message = f"Assigned {assigned_count} free agents to teams"
+            if teams_created > 0:
+                message += f" (created {teams_created} new teams)"
+            
+            return {
+                "success": True,
+                "message": message,
+                "assigned_count": assigned_count,
+                "teams_created": teams_created
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to auto-assign free agents: {str(e)}"
+            }
