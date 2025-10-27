@@ -1,11 +1,14 @@
 # ABOUTME: FastAPI application for team poaching game
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Form, Query
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from models import JoinRequest, TeamCreateRequest, TeamJoinRequest, PoachRequest, LeaveTeamRequest, StatusResponse
 from turso_game_state import TursoGameManager
+from admin_templates import get_admin_html, get_login_html
 from typing import Dict, Any
 import uvicorn
 import os
+
+ADMIN_PASSWORD = "Douglas42"
 
 # Initialize game manager with Turso
 GameManager = TursoGameManager()
@@ -258,6 +261,81 @@ async def leave_team(request: LeaveTeamRequest) -> Dict[str, Any]:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_panel(password: str = Query(None)):
+    """Admin panel for managing the game"""
+    if password != ADMIN_PASSWORD:
+        return HTMLResponse(content=get_login_html("Invalid password" if password else None))
+    
+    try:
+        status = await GameManager.get_status()
+        max_team_size = await GameManager.get_max_team_size()
+        
+        html = get_admin_html(
+            players=status.get("players", []),
+            teams=status.get("teams", []),
+            stats={
+                "total_players": status.get("total_players", 0),
+                "total_teams": status.get("total_teams", 0),
+                "free_agents_count": status.get("free_agents_count", 0)
+            },
+            max_team_size=max_team_size
+        )
+        return HTMLResponse(content=html)
+    except Exception as e:
+        return HTMLResponse(content=f"<h1>Error</h1><p>{str(e)}</p>")
+
+
+@app.post("/admin/reset")
+async def admin_reset(password: str = Form(...)):
+    """Reset the entire database"""
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Invalid password")
+    
+    result = await GameManager.reset_database()
+    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+
+
+@app.post("/admin/delete-player")
+async def admin_delete_player(password: str = Form(...), player_name: str = Form(...)):
+    """Delete a player"""
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Invalid password")
+    
+    await GameManager.delete_player(player_name)
+    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+
+
+@app.post("/admin/delete-team")
+async def admin_delete_team(password: str = Form(...), team_name: str = Form(...)):
+    """Delete a team"""
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Invalid password")
+    
+    await GameManager.delete_team(team_name)
+    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+
+
+@app.post("/admin/create-test-data")
+async def admin_create_test_data(password: str = Form(...)):
+    """Create test data"""
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Invalid password")
+    
+    await GameManager.create_test_data()
+    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+
+
+@app.post("/admin/set-team-size")
+async def admin_set_team_size(password: str = Form(...), team_size: int = Form(...)):
+    """Set maximum team size"""
+    if password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="Invalid password")
+    
+    await GameManager.set_max_team_size(team_size)
+    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
 
 
 @app.get("/")

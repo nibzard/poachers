@@ -154,6 +154,7 @@ INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('total_teams', 0
     async def create_team(self, team_name: str, creator_name: str) -> Dict[str, Any]:
         """Create a new team with the creator as first member"""
         try:
+            max_team_size = await self.get_max_team_size()
             client = self._get_client()
 
             # Check if team already exists
@@ -232,6 +233,7 @@ INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('total_teams', 0
         """Join an existing team"""
         try:
             client = self._get_client()
+            max_team_size = await self.get_max_team_size()
 
             # Get player
             player = client.execute(
@@ -598,4 +600,206 @@ INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('total_teams', 0
                 "total_teams": 0,
                 "free_agents_count": 0,
                 "error": str(e)
+            }
+
+    async def reset_database(self) -> Dict[str, Any]:
+        """Reset the entire database - delete all data"""
+        try:
+            client = self._get_client()
+            
+            # Delete all data
+            client.execute("DELETE FROM team_members")
+            client.execute("DELETE FROM teams")
+            client.execute("DELETE FROM players")
+            client.execute("UPDATE game_stats SET stat_value = 0 WHERE stat_key IN ('total_players', 'total_teams')")
+            
+            return {
+                "success": True,
+                "message": "Database reset successfully"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to reset database: {str(e)}"
+            }
+
+    async def delete_player(self, player_name: str) -> Dict[str, Any]:
+        """Delete a player and remove them from their team"""
+        try:
+            client = self._get_client()
+            
+            # Get player info
+            player_data = client.execute(
+                "SELECT id, team_id FROM players WHERE name = ?",
+                [player_name]
+            )
+            
+            if len(player_data) == 0:
+                return {
+                    "success": False,
+                    "message": f"Player '{player_name}' not found"
+                }
+            
+            player_id = player_data[0][0]
+            team_id = player_data[0][1]
+            
+            # Delete from team_members if in a team
+            if team_id:
+                client.execute(
+                    "DELETE FROM team_members WHERE player_id = ?",
+                    [player_id]
+                )
+                
+                # Check if team is now empty
+                remaining = client.execute(
+                    "SELECT COUNT(*) FROM team_members WHERE team_id = ?",
+                    [team_id]
+                )
+                
+                if remaining[0][0] == 0:
+                    # Delete empty team
+                    client.execute("DELETE FROM teams WHERE id = ?", [team_id])
+                    client.execute(
+                        "UPDATE game_stats SET stat_value = stat_value - 1 WHERE stat_key = 'total_teams'"
+                    )
+            
+            # Delete player
+            client.execute("DELETE FROM players WHERE id = ?", [player_id])
+            client.execute(
+                "UPDATE game_stats SET stat_value = stat_value - 1 WHERE stat_key = 'total_players'"
+            )
+            
+            return {
+                "success": True,
+                "message": f"Player '{player_name}' deleted successfully"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to delete player: {str(e)}"
+            }
+
+    async def delete_team(self, team_name: str) -> Dict[str, Any]:
+        """Delete a team and set all members as free agents"""
+        try:
+            client = self._get_client()
+            
+            # Get team info
+            team_data = client.execute(
+                "SELECT id FROM teams WHERE name = ?",
+                [team_name]
+            )
+            
+            if len(team_data) == 0:
+                return {
+                    "success": False,
+                    "message": f"Team '{team_name}' not found"
+                }
+            
+            team_id = team_data[0][0]
+            
+            # Set all team members as free agents
+            client.execute(
+                "UPDATE players SET team_id = NULL WHERE team_id = ?",
+                [team_id]
+            )
+            
+            # Delete team_members relationships
+            client.execute(
+                "DELETE FROM team_members WHERE team_id = ?",
+                [team_id]
+            )
+            
+            # Delete team
+            client.execute("DELETE FROM teams WHERE id = ?", [team_id])
+            client.execute(
+                "UPDATE game_stats SET stat_value = stat_value - 1 WHERE stat_key = 'total_teams'"
+            )
+            
+            return {
+                "success": True,
+                "message": f"Team '{team_name}' deleted successfully"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to delete team: {str(e)}"
+            }
+
+    async def create_test_data(self) -> Dict[str, Any]:
+        """Create test data for development"""
+        try:
+            # Create test players
+            test_players = ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank"]
+            created_players = []
+            
+            for name in test_players:
+                result = await self.join_game(name)
+                if result["success"]:
+                    created_players.append(name)
+            
+            # Create test teams
+            if len(created_players) >= 4:
+                await self.create_team("TeamAlpha", created_players[0])
+                await self.join_team("TeamAlpha", created_players[1])
+                
+                await self.create_team("TeamBeta", created_players[2])
+                await self.join_team("TeamBeta", created_players[3])
+            
+            return {
+                "success": True,
+                "message": f"Created {len(created_players)} test players and 2 teams"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to create test data: {str(e)}"
+            }
+
+    async def get_max_team_size(self) -> int:
+        """Get the current max team size setting"""
+        try:
+            client = self._get_client()
+            
+            # Check if setting exists
+            result = client.execute(
+                "SELECT stat_value FROM game_stats WHERE stat_key = 'max_team_size'"
+            )
+            
+            if len(result) > 0:
+                return result[0][0]
+            else:
+                # Default to 2 if not set
+                client.execute(
+                    "INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('max_team_size', 2)"
+                )
+                return 2
+        except Exception as e:
+            return 2  # Default fallback
+
+    async def set_max_team_size(self, size: int) -> Dict[str, Any]:
+        """Set the maximum team size"""
+        try:
+            if size < 1 or size > 10:
+                return {
+                    "success": False,
+                    "message": "Team size must be between 1 and 10"
+                }
+            
+            client = self._get_client()
+            
+            # Insert or update the setting
+            client.execute(
+                "INSERT OR REPLACE INTO game_stats (stat_key, stat_value) VALUES ('max_team_size', ?)",
+                [size]
+            )
+            
+            return {
+                "success": True,
+                "message": f"Max team size set to {size}"
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to set max team size: {str(e)}"
             }
