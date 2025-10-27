@@ -1,18 +1,8 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "api/handler.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": ["db/**", "*.py", "requirements.txt"]
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/handler.py"
+      "source": "/(.*)",
+      "destination": "/api/index"
     }
   ]
 }
