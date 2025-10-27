@@ -27,15 +27,16 @@ async def join_game(request: JoinRequest) -> Dict[str, Any]:
     try:
         result = await GameManager.join_game(request.name)
         if result["success"]:
+            player = result["player"]
             return JSONResponse(
                 status_code=201,
                 content={
                     "message": result["message"],
-                    "player": {
-                        "id": str(result["player"].id),
-                        "name": result["player"].name,
-                        "team_id": str(result["player"].team_id) if result["player"].team_id else None,
-                        "joined_at": result["player"].joined_at.isoformat()
+                    "player": player if isinstance(player, dict) else {
+                        "id": str(player.id),
+                        "name": player.name,
+                        "team_id": str(player.team_id) if player.team_id else None,
+                        "joined_at": player.joined_at.isoformat()
                     }
                 }
             )
@@ -79,13 +80,18 @@ async def manage_team(request: Dict[str, str]) -> Dict[str, Any]:
             raise HTTPException(status_code=400, detail="Action must be either 'create' or 'join'")
 
         if result["success"]:
-            team_data = {
-                "id": str(result["team"].id),
-                "name": result["team"].name,
-                "member_ids": [str(member_id) for member_id in result["team"].member_ids],
-                "created_at": result["team"].created_at.isoformat(),
-                "is_full": result["team"].is_full
-            }
+            team = result["team"]
+            # Handle both dict and object responses
+            if isinstance(team, dict):
+                team_data = team
+            else:
+                team_data = {
+                    "id": str(team.id),
+                    "name": team.name,
+                    "member_ids": [str(member_id) for member_id in team.member_ids],
+                    "created_at": team.created_at.isoformat(),
+                    "is_full": team.is_full
+                }
             return JSONResponse(
                 status_code=200,
                 content={
@@ -112,31 +118,40 @@ async def get_status() -> Dict[str, Any]:
 
         players_data = []
         for player in status["players"]:
-            players_data.append({
-                "id": str(player.id),
-                "name": player.name,
-                "team_id": str(player.team_id) if player.team_id else None,
-                "joined_at": player.joined_at.isoformat()
-            })
+            if isinstance(player, dict):
+                players_data.append(player)
+            else:
+                players_data.append({
+                    "id": str(player.id),
+                    "name": player.name,
+                    "team_id": str(player.team_id) if player.team_id else None,
+                    "joined_at": player.joined_at.isoformat()
+                })
 
         teams_data = []
         for team in status["teams"]:
-            teams_data.append({
-                "id": str(team.id),
-                "name": team.name,
-                "member_ids": [str(member_id) for member_id in team.member_ids],
-                "created_at": team.created_at.isoformat(),
-                "is_full": team.is_full,
-                "member_count": len(team.member_ids)
-            })
+            if isinstance(team, dict):
+                teams_data.append(team)
+            else:
+                teams_data.append({
+                    "id": str(team.id),
+                    "name": team.name,
+                    "member_ids": [str(member_id) for member_id in team.member_ids],
+                    "created_at": team.created_at.isoformat(),
+                    "is_full": team.is_full,
+                    "member_count": len(team.member_ids)
+                })
 
         free_agents_data = []
         for player in status["free_agents"]:
-            free_agents_data.append({
-                "id": str(player.id),
-                "name": player.name,
-                "joined_at": player.joined_at.isoformat()
-            })
+            if isinstance(player, dict):
+                free_agents_data.append(player)
+            else:
+                free_agents_data.append({
+                    "id": str(player.id),
+                    "name": player.name,
+                    "joined_at": player.joined_at.isoformat()
+                })
 
         return JSONResponse(
             status_code=200,
@@ -168,23 +183,34 @@ async def poach_player(request: PoachRequest) -> Dict[str, Any]:
         result = await GameManager.poach_player(request.target_player_name, request.poacher_team_name)
 
         if result["success"]:
+            new_team = result["new_team"]
+            # Handle both dict and object responses
+            if isinstance(new_team, dict):
+                new_team_data = new_team
+            else:
+                new_team_data = {
+                    "id": str(new_team.id),
+                    "name": new_team.name,
+                    "member_ids": [str(member_id) for member_id in new_team.member_ids],
+                    "is_full": new_team.is_full
+                }
+            
             response_data = {
                 "message": result["message"],
-                "new_team": {
-                    "id": str(result["new_team"].id),
-                    "name": result["new_team"].name,
-                    "member_ids": [str(member_id) for member_id in result["new_team"].member_ids],
-                    "is_full": result["new_team"].is_full
-                }
+                "new_team": new_team_data
             }
 
             if result["old_team"]:
-                response_data["old_team"] = {
-                    "id": str(result["old_team"].id),
-                    "name": result["old_team"].name,
-                    "member_ids": [str(member_id) for member_id in result["old_team"].member_ids],
-                    "is_full": result["old_team"].is_full
-                }
+                old_team = result["old_team"]
+                if isinstance(old_team, dict):
+                    response_data["old_team"] = old_team
+                else:
+                    response_data["old_team"] = {
+                        "id": str(old_team.id),
+                        "name": old_team.name,
+                        "member_ids": [str(member_id) for member_id in old_team.member_ids],
+                        "is_full": old_team.is_full
+                    }
             else:
                 response_data["old_team"] = {
                     "message": "Old team was dissolved (no members remaining)"
