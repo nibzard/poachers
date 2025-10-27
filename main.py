@@ -1,14 +1,29 @@
 # ABOUTME: FastAPI application for team poaching game
-from fastapi import FastAPI, HTTPException, Form, Query
+from fastapi import FastAPI, HTTPException, Form, Query, Cookie, Response
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from models import JoinRequest, TeamCreateRequest, TeamJoinRequest, PoachRequest, LeaveTeamRequest, StatusResponse
 from turso_game_state import TursoGameManager
 from admin_templates import get_admin_html, get_login_html
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import uvicorn
 import os
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 
 ADMIN_PASSWORD = "Douglas42"
+SECRET_KEY = os.getenv("SECRET_KEY", "poachers-secret-key-change-in-production-12345")
+serializer = URLSafeTimedSerializer(SECRET_KEY)
+
+def create_session_token(password: str) -> str:
+    """Create a signed session token"""
+    return serializer.dumps(password, salt="admin-session")
+
+def verify_session_token(token: str) -> bool:
+    """Verify the session token and check if password is correct"""
+    try:
+        password = serializer.loads(token, salt="admin-session", max_age=86400)  # 24 hours
+        return password == ADMIN_PASSWORD
+    except (BadSignature, Exception):
+        return False
 
 # Initialize game manager with Turso
 GameManager = TursoGameManager()
@@ -263,11 +278,30 @@ async def leave_team(request: LeaveTeamRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
+@app.post("/admin/login", response_class=HTMLResponse)
+async def admin_login(password: str = Form(...)):
+    """Handle admin login"""
+    if password == ADMIN_PASSWORD:
+        response = RedirectResponse(url="/admin", status_code=303)
+        session_token = create_session_token(password)
+        response.set_cookie(
+            key="admin_session",
+            value=session_token,
+            httponly=True,
+            max_age=86400,  # 24 hours
+            samesite="lax"
+        )
+        return response
+    else:
+        return HTMLResponse(content=get_login_html("Invalid password"))
+
+
 @app.get("/admin", response_class=HTMLResponse)
-async def admin_panel(password: str = Query(None)):
+async def admin_panel(admin_session: Optional[str] = Cookie(None)):
     """Admin panel for managing the game"""
-    if password != ADMIN_PASSWORD:
-        return HTMLResponse(content=get_login_html("Invalid password" if password else None))
+    # Check if user is authenticated
+    if not admin_session or not verify_session_token(admin_session):
+        return HTMLResponse(content=get_login_html())
     
     try:
         status = await GameManager.get_status()
@@ -289,63 +323,71 @@ async def admin_panel(password: str = Query(None)):
 
 
 @app.post("/admin/reset")
-async def admin_reset(password: str = Form(...)):
+async def admin_reset(admin_session: Optional[str] = Cookie(None)):
     """Reset the entire database"""
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Invalid password")
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
     
     result = await GameManager.reset_database()
-    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/delete-player")
-async def admin_delete_player(password: str = Form(...), player_name: str = Form(...)):
+async def admin_delete_player(player_name: str = Form(...), admin_session: Optional[str] = Cookie(None)):
     """Delete a player"""
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Invalid password")
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
     
     await GameManager.delete_player(player_name)
-    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/delete-team")
-async def admin_delete_team(password: str = Form(...), team_name: str = Form(...)):
+async def admin_delete_team(team_name: str = Form(...), admin_session: Optional[str] = Cookie(None)):
     """Delete a team"""
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Invalid password")
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
     
     await GameManager.delete_team(team_name)
-    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/create-test-data")
-async def admin_create_test_data(password: str = Form(...)):
+async def admin_create_test_data(admin_session: Optional[str] = Cookie(None)):
     """Create test data"""
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Invalid password")
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
     
     await GameManager.create_test_data()
-    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/set-team-size")
-async def admin_set_team_size(password: str = Form(...), team_size: int = Form(...)):
+async def admin_set_team_size(team_size: int = Form(...), admin_session: Optional[str] = Cookie(None)):
     """Set maximum team size"""
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Invalid password")
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
     
     await GameManager.set_max_team_size(team_size)
-    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
 
 
 @app.post("/admin/auto-assign")
-async def admin_auto_assign(password: str = Form(...)):
+async def admin_auto_assign(admin_session: Optional[str] = Cookie(None)):
     """Automatically assign free agents to teams"""
-    if password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=403, detail="Invalid password")
+    if not admin_session or not verify_session_token(admin_session):
+        raise HTTPException(status_code=403, detail="Not authenticated")
     
     await GameManager.auto_assign_free_agents()
-    return RedirectResponse(url=f"/admin?password={password}", status_code=303)
+    return RedirectResponse(url="/admin", status_code=303)
+
+
+@app.get("/admin/logout")
+async def admin_logout():
+    """Logout from admin panel"""
+    response = RedirectResponse(url="/admin", status_code=303)
+    response.delete_cookie("admin_session")
+    return response
 
 
 @app.get("/")

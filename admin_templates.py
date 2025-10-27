@@ -18,11 +18,10 @@ def get_admin_html(players, teams, stats, max_team_size=2):
             <td>{team_name}</td>
             <td>{player.get('joined_at', '')[:19]}</td>
             <td>
-                <form method="POST" action="/admin/delete-player" style="display: inline;">
-                    <input type="hidden" name="password" value="Douglas42">
-                    <input type="hidden" name="player_name" value="{player.get('name')}">
-                    <button type="submit" onclick="return confirm('Delete player {player.get('name')}?')">Delete</button>
-                </form>
+            <form method="POST" action="/admin/delete-player" style="display: inline;">
+            <input type="hidden" name="player_name" value="{player.get('name')}">
+            <button type="submit" onclick="return confirm('Delete player {player.get('name')}?')">Delete</button>
+            </form>
             </td>
         </tr>
         """
@@ -41,7 +40,6 @@ def get_admin_html(players, teams, stats, max_team_size=2):
             <td>{team.get('created_at', '')[:19]}</td>
             <td>
                 <form method="POST" action="/admin/delete-team" style="display: inline;">
-                    <input type="hidden" name="password" value="Douglas42">
                     <input type="hidden" name="team_name" value="{team.get('name')}">
                     <button type="submit" onclick="return confirm('Delete team {team.get('name')}?')">Delete</button>
                 </form>
@@ -201,7 +199,6 @@ def get_admin_html(players, teams, stats, max_team_size=2):
         <h2>⚙️ Settings</h2>
         <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px 0;">
             <form method="POST" action="/admin/set-team-size" style="display: flex; align-items: center; gap: 15px;">
-                <input type="hidden" name="password" value="Douglas42">
                 <label style="font-weight: 600;">Max Team Size:</label>
                 <input type="number" name="team_size" value="{max_team_size}" min="1" max="10" style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 4px;">
                 <button type="submit" style="background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">Update</button>
@@ -211,23 +208,23 @@ def get_admin_html(players, teams, stats, max_team_size=2):
 
         <div class="action-buttons">
             <form method="GET" action="/admin" style="display: inline;">
-                <input type="hidden" name="password" value="Douglas42">
                 <button type="submit" class="refresh-btn">🔄 Refresh</button>
             </form>
             
             <form method="POST" action="/admin/auto-assign" style="display: inline;">
-                <input type="hidden" name="password" value="Douglas42">
                 <button type="submit" class="test-data-btn">🎲 Auto-Assign Free Agents</button>
             </form>
             
             <form method="POST" action="/admin/create-test-data" style="display: inline;">
-                <input type="hidden" name="password" value="Douglas42">
                 <button type="submit" class="test-data-btn">➕ Create Test Data</button>
             </form>
             
             <form method="POST" action="/admin/reset" style="display: inline;">
-                <input type="hidden" name="password" value="Douglas42">
                 <button type="submit" class="reset-btn" onclick="return confirm('⚠️ Are you sure? This will delete ALL data!')">🗑️ Reset Database</button>
+            </form>
+            
+            <form method="GET" action="/admin/logout" style="display: inline;">
+                <button type="submit" style="background: #6c757d; color: white; padding: 12px 24px; font-size: 16px;">🚪 Logout</button>
             </form>
         </div>
 
@@ -346,7 +343,7 @@ def get_login_html(error=None):
         <div class="login-box">
             <h1>🔐 Admin Login</h1>
             {error_msg}
-            <form method="GET" action="/admin">
+            <form method="POST" action="/admin/login">
                 <input type="password" name="password" placeholder="Enter admin password" required autofocus>
                 <button type="submit">Login</button>
             </form>
