@@ -24,6 +24,13 @@
 - **Max Team Size:** Configure the maximum number of members per team (1-10)
   - Default: 2 members
   - Changes apply immediately to all new team joins and poaching attempts
+  
+- **Poaching Status:** Enable or disable poaching game-wide
+  - Toggle button shows current status (✓ Enabled / ✗ Disabled)
+  - Green = Enabled (players can poach)
+  - Red = Disabled (poaching is blocked)
+  - When disabled, all poach requests return 403 error
+  - Useful for controlling game phases or preventing disruption
 
 ### 🎮 Quick Actions
 
