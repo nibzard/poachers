@@ -5,6 +5,14 @@
 **URL:** https://poachers.vercel.app/admin  
 **Password:** `Douglas42`
 
+### Login Process
+1. Navigate to https://poachers.vercel.app/admin
+2. Enter password: `Douglas42`
+3. Click "Login"
+4. You will be logged in with a secure session cookie (valid for 24 hours)
+5. Password is **not** visible in the URL
+6. Use the "Logout" button to end your session
+
 ## Features
 
 ### 📊 Dashboard

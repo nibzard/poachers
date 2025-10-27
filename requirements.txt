@@ -53,6 +53,8 @@ idna==3.11
     #   yarl
 imagesize==1.4.1
     # via sphinx
+itsdangerous==2.2.0
+    # via poachers (pyproject.toml)
 jinja2==3.1.6
     # via sphinx
 libsql-client==0.3.1

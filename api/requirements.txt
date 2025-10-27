@@ -53,6 +53,8 @@ idna==3.11
     #   yarl
 imagesize==1.4.1
     # via sphinx
+itsdangerous==2.2.0
+    # via poachers (pyproject.toml)
 jinja2==3.1.6
     # via sphinx
 libsql-client==0.3.1
@@ -79,6 +81,8 @@ pydantic-core==2.41.4
     # via pydantic
 pygments==2.19.2
     # via sphinx
+python-multipart==0.0.20
+    # via poachers (pyproject.toml)
 requests==2.32.5
     # via sphinx
 roman-numerals-py==3.1.0
