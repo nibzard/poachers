@@ -212,17 +212,57 @@ Example error response:
 ## Architecture
 
 - **FastAPI**: Web framework and API
+- **Turso SQL**: Distributed SQLite database for persistent storage
 - **Pydantic**: Data validation and serialization
 - **uv**: Modern Python package and project management
-- **Threading**: Thread-safe game state management
-- **UUID**: Unique identifiers for players and teams
+- **Vercel**: Serverless deployment platform
+
+## Database Setup
+
+This game uses [Turso](https://turso.tech/) for persistent data storage:
+
+1. **Create Turso database:**
+   ```bash
+   # Install Turso CLI
+   curl -sSfL https://get.tur.so/install.sh | sh
+
+   # Create database
+   turso db create poachers
+
+   # Get connection URL and auth token
+   turso db show poachers --show-url
+   turso db tokens create poachers
+   ```
+
+2. **Set up environment variables:**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+
+   # Edit .env with your Turso credentials
+   TURSO_DATABASE_URL=https://your-database-url
+   TURSO_AUTH_TOKEN=your-auth-token
+   ```
+
+3. **Deploy to Vercel:**
+   ```bash
+   # Install Vercel CLI
+   npm i -g vercel
+
+   # Deploy with environment variables
+   vercel --env TURSO_DATABASE_URL --env TURSO_AUTH_TOKEN
+   ```
 
 ## File Structure
 
 ```
-├── main.py              # FastAPI app and API endpoints
+├── main.py              # FastAPI app and API endpoints (local development)
 ├── models.py            # Pydantic data models
-├── game_state.py        # Game state management and business logic
+├── game_state.py        # In-memory game state (local development only)
+├── turso_game_state.py  # Turso database operations
+├── api/index.py         # Vercel serverless function entry point
+├── db/schema.sql        # Database schema definition
+├── .env.example         # Environment variables template
 ├── pyproject.toml       # uv project configuration
 ├── uv.lock             # uv dependency lock file
 └── README.md           # This file

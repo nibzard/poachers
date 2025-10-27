@@ -8,4 +8,5 @@ dependencies = [
     "fastapi>=0.119.0",
     "pywrangler>=0.0.2",
     "uvicorn>=0.37.0",
+    "libsql-client>=0.3.1",
 ]
