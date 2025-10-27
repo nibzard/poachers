@@ -1,4 +1,4 @@
-# ABOUTME: Vercel serverless handler for FastAPI application using Mangum
+# ABOUTME: Vercel serverless handler for FastAPI application
 import sys
 import os
 
@@ -8,7 +8,7 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 from main import app
-from mangum import Mangum
 
-# Create the Mangum handler
-handler = Mangum(app, lifespan="off")
+# Export the app directly for ASGI
+# Vercel will handle the ASGI server automatically
+__all__ = ['app']
