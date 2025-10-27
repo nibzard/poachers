@@ -38,8 +38,10 @@ class TursoGameManager:
         try:
             client = self._get_client()
 
-            # Read and execute schema
-            with open('db/schema.sql', 'r') as f:
+            # Read and execute schema - use absolute path
+            import os
+            schema_path = os.path.join(os.path.dirname(__file__), 'db', 'schema.sql')
+            with open(schema_path, 'r') as f:
                 schema_sql = f.read()
 
             # Execute schema statements

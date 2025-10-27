@@ -2,9 +2,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from models import JoinRequest, TeamCreateRequest, TeamJoinRequest, PoachRequest, StatusResponse
-from game_state import GameManager
+from turso_game_state import TursoGameManager
 from typing import Dict, Any
 import uvicorn
+import os
+
+# Initialize game manager with Turso
+GameManager = TursoGameManager()
 
 app = FastAPI(
     title="Team Poaching Game",
@@ -21,7 +25,7 @@ async def join_game(request: JoinRequest) -> Dict[str, Any]:
     - **name**: Player name (must be unique)
     """
     try:
-        result = GameManager.join_game(request.name)
+        result = await GameManager.join_game(request.name)
         if result["success"]:
             return JSONResponse(
                 status_code=201,
@@ -60,7 +64,7 @@ async def manage_team(request: Dict[str, str]) -> Dict[str, Any]:
             if not team_name or not creator_name:
                 raise HTTPException(status_code=400, detail="team_name and creator_name are required for create action")
 
-            result = GameManager.create_team(team_name, creator_name)
+            result = await GameManager.create_team(team_name, creator_name)
 
         elif action == "join":
             team_name = request.get("team_name")
@@ -69,7 +73,7 @@ async def manage_team(request: Dict[str, str]) -> Dict[str, Any]:
             if not team_name or not player_name:
                 raise HTTPException(status_code=400, detail="team_name and player_name are required for join action")
 
-            result = GameManager.join_team(team_name, player_name)
+            result = await GameManager.join_team(team_name, player_name)
 
         else:
             raise HTTPException(status_code=400, detail="Action must be either 'create' or 'join'")
@@ -104,7 +108,7 @@ async def get_status() -> Dict[str, Any]:
     Get current game state including all players, teams, and free agents
     """
     try:
-        status = GameManager.get_status()
+        status = await GameManager.get_status()
 
         players_data = []
         for player in status["players"]:
@@ -161,7 +165,7 @@ async def poach_player(request: PoachRequest) -> Dict[str, Any]:
     - **poacher_team_name**: Name of your team (must have space available)
     """
     try:
-        result = GameManager.poach_player(request.target_player_name, request.poacher_team_name)
+        result = await GameManager.poach_player(request.target_player_name, request.poacher_team_name)
 
         if result["success"]:
             response_data = {
