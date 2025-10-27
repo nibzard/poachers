@@ -1,0 +1,76 @@
+# Admin Panel Guide
+
+## Access
+
+**URL:** https://poachers.vercel.app/admin  
+**Password:** `Douglas42`
+
+## Features
+
+### 📊 Dashboard
+- View total players, teams, and free agents
+- See all players with their team assignments
+- View all teams with member counts
+
+### ⚙️ Settings
+- **Max Team Size:** Configure the maximum number of members per team (1-10)
+  - Default: 2 members
+  - Changes apply immediately to all new team joins and poaching attempts
+
+### 🎮 Quick Actions
+
+1. **🔄 Refresh** - Reload the current game state
+2. **➕ Create Test Data** - Quickly populate the database with 6 test players and 2 teams
+   - Players: Alice, Bob, Charlie, Diana, Eve, Frank
+   - Teams: TeamAlpha (Alice, Bob) and TeamBeta (Charlie, Diana)
+3. **🗑️ Reset Database** - Delete ALL game data (requires confirmation)
+   - Removes all players, teams, and relationships
+   - Resets all statistics to zero
+
+### 👥 Player Management
+- **Delete Player** - Remove a player from the game
+  - If player is on a team, they are removed from the team
+  - If they were the last member, the team is automatically dissolved
+
+### 🏆 Team Management
+- **Delete Team** - Remove a team from the game
+  - All team members become free agents
+  - Team statistics are updated
+
+## Security
+
+- Password protected (query parameter or form submission)
+- Password is hardcoded in the application: `Douglas42`
+- **Do not share the admin URL with players!**
+
+## Use Cases
+
+### Setting up a game session
+1. Go to admin panel
+2. Click "Create Test Data" to populate with sample data
+3. Adjust "Max Team Size" if needed (e.g., set to 3 for larger teams)
+4. Players can now join and play
+
+### Resetting between sessions
+1. Go to admin panel
+2. Click "Reset Database" and confirm
+3. All data is cleared, ready for a new game
+
+### Changing team size mid-game
+1. Go to admin panel
+2. Update "Max Team Size" value
+3. Click "Update"
+4. New limit applies to future joins/poaches
+5. Existing teams are not automatically resized
+
+### Managing problematic players/teams
+1. Go to admin panel
+2. Find the player/team in the table
+3. Click "Delete" button
+4. Confirm the deletion
+
+## Notes
+
+- The max team size setting is stored in the database (persistent)
+- Existing teams with more members than the new limit will not be automatically resized
+- All admin actions are immediate and cannot be undone (except by resetting)
