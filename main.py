@@ -1,7 +1,7 @@
 # ABOUTME: FastAPI application for team poaching game
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
-from models import JoinRequest, TeamCreateRequest, TeamJoinRequest, PoachRequest, StatusResponse
+from models import JoinRequest, TeamCreateRequest, TeamJoinRequest, PoachRequest, LeaveTeamRequest, StatusResponse
 from turso_game_state import TursoGameManager
 from typing import Dict, Any
 import uvicorn
@@ -226,6 +226,40 @@ async def poach_player(request: PoachRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
+@app.post("/leave")
+async def leave_team(request: LeaveTeamRequest) -> Dict[str, Any]:
+    """
+    Leave your current team and become a free agent
+    
+    - **player_name**: Name of the player who wants to leave their team
+    """
+    try:
+        result = await GameManager.leave_team(request.player_name)
+        
+        if result["success"]:
+            player = result["player"]
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "message": result["message"],
+                    "player": player if isinstance(player, dict) else {
+                        "id": str(player.id),
+                        "name": player.name,
+                        "team_id": str(player.team_id) if player.team_id else None,
+                        "joined_at": player.joined_at.isoformat()
+                    },
+                    "team_dissolved": result.get("team_dissolved", False)
+                }
+            )
+        else:
+            raise HTTPException(status_code=400, detail=result["message"])
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
 @app.get("/")
 async def root():
     """
@@ -239,7 +273,8 @@ async def root():
             "POST /join": "Join the game as a new player",
             "POST /team": "Create a new team or join an existing team",
             "GET /status": "Get current game state",
-            "POST /poach": "Poach a player from another team"
+            "POST /poach": "Poach a player from another team",
+            "POST /leave": "Leave your current team and become a free agent"
         },
         "rules": {
             "teams": "Maximum 2 members per team",

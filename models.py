@@ -151,6 +151,10 @@ class PoachRequest(BaseModel):
     poacher_team_name: str = Field(..., min_length=1, max_length=50)
 
 
+class LeaveTeamRequest(BaseModel):
+    player_name: str = Field(..., min_length=1, max_length=50)
+
+
 class StatusResponse(BaseModel):
     players: List[Player]
     teams: List[Team]

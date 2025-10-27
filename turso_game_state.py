@@ -442,6 +442,90 @@ INSERT OR IGNORE INTO game_stats (stat_key, stat_value) VALUES ('total_teams', 0
                 "message": f"Failed to poach player: {str(e)}"
             }
 
+    async def leave_team(self, player_name: str) -> Dict[str, Any]:
+        """Remove a player from their team and make them a free agent"""
+        try:
+            client = self._get_client()
+
+            # Get player
+            player_data = client.execute(
+                "SELECT id, team_id FROM players WHERE name = ?",
+                [player_name]
+            )
+            if len(player_data) == 0:
+                return {
+                    "success": False,
+                    "message": f"Player '{player_name}' not found"
+                }
+
+            player_id = player_data[0][0]
+            team_id = player_data[0][1]
+
+            if not team_id:
+                return {
+                    "success": False,
+                    "message": f"Player '{player_name}' is not on a team"
+                }
+
+            # Get team name before removal
+            team_info = client.execute(
+                "SELECT name FROM teams WHERE id = ?",
+                [team_id]
+            )
+            team_name = team_info[0][0] if team_info else "Unknown"
+
+            # Remove from team_members
+            client.execute(
+                "DELETE FROM team_members WHERE team_id = ? AND player_id = ?",
+                [team_id, player_id]
+            )
+
+            # Update player's team_id to NULL
+            client.execute(
+                "UPDATE players SET team_id = NULL WHERE id = ?",
+                [player_id]
+            )
+
+            # Check if team is now empty
+            remaining_members = client.execute(
+                "SELECT COUNT(*) FROM team_members WHERE team_id = ?",
+                [team_id]
+            )
+
+            team_dissolved = False
+            if remaining_members[0][0] == 0:
+                # Delete empty team
+                client.execute("DELETE FROM teams WHERE id = ?", [team_id])
+                client.execute(
+                    "UPDATE game_stats SET stat_value = stat_value - 1 WHERE stat_key = 'total_teams'"
+                )
+                team_dissolved = True
+
+            # Get updated player info
+            player_updated = client.execute(
+                "SELECT id, name, team_id, joined_at FROM players WHERE id = ?",
+                [player_id]
+            )
+
+            return {
+                "success": True,
+                "message": f"Player '{player_name}' left team '{team_name}' and is now a free agent" + 
+                          (f". Team '{team_name}' was dissolved." if team_dissolved else ""),
+                "player": {
+                    "id": player_updated[0][0],
+                    "name": player_updated[0][1],
+                    "team_id": player_updated[0][2],
+                    "joined_at": player_updated[0][3]
+                },
+                "team_dissolved": team_dissolved
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Failed to leave team: {str(e)}"
+            }
+
     async def get_status(self) -> Dict[str, Any]:
         """Get current game status"""
         try:
