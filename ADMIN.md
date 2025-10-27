@@ -20,10 +20,16 @@
 ### 🎮 Quick Actions
 
 1. **🔄 Refresh** - Reload the current game state
-2. **➕ Create Test Data** - Quickly populate the database with 6 test players and 2 teams
+2. **🎲 Auto-Assign Free Agents** - Automatically assign all free agents to teams
+   - First fills existing teams that have available spots
+   - If no teams have space, creates new teams with random names
+   - Team names are generated from combinations like: LuckyParakeet, HappyMonkey, BraveTiger, etc.
+   - Adjectives: Lucky, Happy, Brave, Swift, Mighty, Clever, Bold, Fierce, Gentle, Wise, Quick, Strong, Bright, Wild, Noble, Proud, Fearless, Agile, Cosmic, Magic
+   - Animals: Parakeet, Monkey, Tiger, Eagle, Dragon, Phoenix, Wolf, Lion, Falcon, Panther, Bear, Fox, Hawk, Leopard, Dolphin, Shark, Cobra, Jaguar, Raven, Owl
+3. **➕ Create Test Data** - Quickly populate the database with 6 test players and 2 teams
    - Players: Alice, Bob, Charlie, Diana, Eve, Frank
    - Teams: TeamAlpha (Alice, Bob) and TeamBeta (Charlie, Diana)
-3. **🗑️ Reset Database** - Delete ALL game data (requires confirmation)
+4. **🗑️ Reset Database** - Delete ALL game data (requires confirmation)
    - Removes all players, teams, and relationships
    - Resets all statistics to zero
 
@@ -50,6 +56,14 @@
 2. Click "Create Test Data" to populate with sample data
 3. Adjust "Max Team Size" if needed (e.g., set to 3 for larger teams)
 4. Players can now join and play
+
+### Quickly forming teams from free agents
+1. Players join the game (they start as free agents)
+2. Go to admin panel
+3. Click "Auto-Assign Free Agents"
+4. All free agents are automatically distributed to teams
+5. Teams with available spots are filled first
+6. New teams with fun names are created as needed
 
 ### Resetting between sessions
 1. Go to admin panel
