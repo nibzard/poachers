@@ -22,10 +22,10 @@ async def join_game(request: JoinRequest) -> Dict[str, Any]:
     """
     Join the game as a new player
 
-    - **name**: Player name (must be unique)
+    - **player_name**: Player name (must be unique)
     """
     try:
-        result = await GameManager.join_game(request.name)
+        result = await GameManager.join_game(request.player_name)
         if result["success"]:
             player = result["player"]
             return JSONResponse(

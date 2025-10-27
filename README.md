@@ -59,7 +59,7 @@ Join the game as a new player.
 **Request:**
 ```json
 {
-  "name": "PlayerName"
+  "player_name": "PlayerName"
 }
 ```
 
@@ -215,9 +215,9 @@ Root endpoint with game information and rules.
 
 1. **Players join:**
    ```bash
-   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"name": "Alice"}'
-   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"name": "Bob"}'
-   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"name": "Charlie"}'
+   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"player_name": "Alice"}'
+   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"player_name": "Bob"}'
+   curl -X POST https://poachers.vercel.app/join -H "Content-Type: application/json" -d '{"player_name": "Charlie"}'
    ```
 
 2. **Create teams:**

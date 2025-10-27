@@ -133,7 +133,7 @@ class GameState(BaseModel):
 
 
 class JoinRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=50)
+    player_name: str = Field(..., min_length=1, max_length=50)
 
 
 class TeamCreateRequest(BaseModel):
