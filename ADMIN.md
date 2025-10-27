@@ -96,6 +96,17 @@
 4. New limit applies to future joins/poaches
 5. Existing teams are not automatically resized
 
+### Controlling poaching during gameplay
+1. Go to admin panel
+2. Look at "Poaching Status" section
+3. Click the toggle button to enable/disable
+4. Green button (✓ Enabled) = Poaching is active
+5. Red button (✗ Disabled) = Poaching is blocked
+6. Use cases:
+   - Disable during team formation phase
+   - Enable for competitive poaching rounds
+   - Disable at end of game to lock teams
+
 ### Managing problematic players/teams
 1. Go to admin panel
 2. Find the player/team in the table
@@ -105,5 +116,7 @@
 ## Notes
 
 - The max team size setting is stored in the database (persistent)
+- The poaching enabled/disabled setting is stored in the database (persistent)
 - Existing teams with more members than the new limit will not be automatically resized
 - All admin actions are immediate and cannot be undone (except by resetting)
+- When poaching is disabled, the API returns: `403 Forbidden: Poaching is currently disabled by the admin`
