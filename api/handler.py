@@ -8,7 +8,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api import app
+from main import app
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
