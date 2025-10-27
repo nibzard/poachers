@@ -4,7 +4,11 @@ import json
 import asyncio
 
 # Import FastAPI app
-from __init__ import app
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from api import app
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):

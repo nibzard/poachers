@@ -8,7 +8,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "WebFetch(domain:poachers.vercel.app)"
+      "WebFetch(domain:poachers.vercel.app)",
+      "WebFetch(domain:poachers-dwnip9ev5-nkkkos-projects.vercel.app)",
+      "Bash(uv run python:*)"
     ],
     "deny": [],
     "ask": []
