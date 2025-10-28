@@ -346,8 +346,8 @@ def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True
             const style = document.createElement('style');
             style.textContent = `
                 .sortable th {{ position: relative; user-select: none; }}
-                .sortable th.sorted-asc::after {{ content: ' \25B2'; position: relative; left: 4px; }}
-                .sortable th.sorted-desc::after {{ content: ' \25BC'; position: relative; left: 4px; }}
+                .sortable th.sorted-asc::after {{ content: ' ▲'; position: relative; left: 4px; }}
+                .sortable th.sorted-desc::after {{ content: ' ▼'; position: relative; left: 4px; }}
             `;
             document.head.appendChild(style);
 
