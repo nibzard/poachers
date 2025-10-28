@@ -219,13 +219,13 @@ def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True
         </div>
 
         <h2>👥 Players ({len(players)})</h2>
-        <table>
+        <table id="players-table" class="sortable">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Team</th>
-                    <th>Joined At</th>
-                    <th>Actions</th>
+                    <th data-type="string">Name</th>
+                    <th data-type="string">Team</th>
+                    <th data-type="date">Joined At</th>
+                    <th data-sortable="false">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -234,14 +234,14 @@ def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True
         </table>
 
         <h2>🏆 Teams ({len(teams)})</h2>
-        <table>
+        <table id="teams-table" class="sortable">
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Members</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                    <th>Actions</th>
+                    <th data-type="string">Name</th>
+                    <th data-type="number">Members</th>
+                    <th data-type="string">Status</th>
+                    <th data-type="date">Created At</th>
+                    <th data-sortable="false">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -274,6 +274,86 @@ def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True
         <div class="warning">
             ⚠️ <strong>Admin Access:</strong> This panel is password protected. Do not share the URL with players.
         </div>
+        
+        <script>
+        // Simple table sorting for admin tables (ascending/descending toggle)
+        (function() {{
+            function parseValue(val, type) {{
+                if (type === 'number') {{
+                    const n = parseFloat(val.replace(/[^0-9.\-]/g, ''));
+                    return isNaN(n) ? Number.NEGATIVE_INFINITY : n;
+                }}
+                if (type === 'date') {{
+                    const d = new Date(val);
+                    return isNaN(d.getTime()) ? 0 : d.getTime();
+                }}
+                return (val || '').toString().toLowerCase();
+            }}
+
+            function getCellText(row, idx) {{
+                const cell = row.children[idx];
+                return cell ? cell.textContent.trim() : '';
+            }}
+
+            function sortTable(table, columnIndex, type, direction) {{
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const multiplier = direction === 'asc' ? 1 : -1;
+                const withIndex = rows.map((tr, i) => ({{ tr, i }}));
+
+                withIndex.sort((a, b) => {{
+                    const av = parseValue(getCellText(a.tr, columnIndex), type);
+                    const bv = parseValue(getCellText(b.tr, columnIndex), type);
+                    if (av < bv) return -1 * multiplier;
+                    if (av > bv) return 1 * multiplier;
+                    return a.i - b.i; // stable sort
+                }});
+
+                // Reattach rows in sorted order
+                const frag = document.createDocumentFragment();
+                withIndex.forEach(({ tr }) => frag.appendChild(tr));
+                tbody.appendChild(frag);
+            }}
+
+            function setupTable(table) {{
+                const headers = Array.from(table.querySelectorAll('thead th'));
+                headers.forEach((th, idx) => {{
+                    const sortable = th.getAttribute('data-sortable');
+                    if (sortable === 'false') return;
+                    th.style.cursor = 'pointer';
+                    th.addEventListener('click', () => {{
+                        const currentCol = table.getAttribute('data-sort-col');
+                        const currentDir = table.getAttribute('data-sort-dir') || 'asc';
+                        const newDir = currentCol == String(idx) ? (currentDir === 'asc' ? 'desc' : 'asc') : 'asc';
+                        const type = th.getAttribute('data-type') || 'string';
+
+                        // Clear previous indicators
+                        headers.forEach(h => {{
+                            h.classList.remove('sorted-asc');
+                            h.classList.remove('sorted-desc');
+                        }});
+
+                        // Perform sort and set indicators
+                        sortTable(table, idx, type, newDir);
+                        th.classList.add(newDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                        table.setAttribute('data-sort-col', String(idx));
+                        table.setAttribute('data-sort-dir', newDir);
+                    }});
+                }});
+            }}
+
+            // Add visual indicators via CSS classes
+            const style = document.createElement('style');
+            style.textContent = `
+                .sortable th {{ position: relative; user-select: none; }}
+                .sortable th.sorted-asc::after {{ content: ' \25B2'; position: relative; left: 4px; }}
+                .sortable th.sorted-desc::after {{ content: ' \25BC'; position: relative; left: 4px; }}
+            `;
+            document.head.appendChild(style);
+
+            document.querySelectorAll('table.sortable').forEach(setupTable);
+        }})();
+        </script>
     </body>
     </html>
     """
