@@ -311,7 +311,7 @@ def get_admin_html(players, teams, stats, max_team_size=2, poaching_enabled=True
 
                 // Reattach rows in sorted order
                 const frag = document.createDocumentFragment();
-                withIndex.forEach(({ tr }) => frag.appendChild(tr));
+                withIndex.forEach(({{ tr }}) => frag.appendChild(tr));
                 tbody.appendChild(frag);
             }}
 
